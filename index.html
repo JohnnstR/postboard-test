@@ -1,470 +1,208 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Task Wall</title>
-
 <style>
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  padding: 40px;
-  background: #f7f5ef;
-  color: #34342f;
-  font-family: 'Trebuchet MS', sans-serif;
-}
-
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 35px;
-}
-
-h1 { font-size: 32px; margin: 0; }
-.subtitle { color: #888; margin-top: 7px; }
-
-button {
-  border: none;
-  cursor: pointer;
-  border-radius: 9px;
-  padding: 10px 16px;
-  font-weight: bold;
-  transition: 0.2s;
-}
-
-button:hover { opacity: 0.8; transform: translateY(-1px); }
-
-.primary {
-  background: #444b3d;
-  color: white;
-}
-
-.secondary {
-  background: #e9e7df;
-  color: #444;
-}
-
-.boards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 25px;
-  align-items: start;
-}
-
-.board {
-  background: white;
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 4px 15px #0000000a;
-  border: 1px solid #eceae3;
-}
-
-.board-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 18px;
-}
-
-.board h2 { margin: 0; font-size: 21px; }
-
-.board-status {
-  font-size: 11px;
-  color: #999;
-  margin-top: 5px;
-}
-
-.task {
-  padding: 13px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-  background: #fff4bd;
-  display: flex;
-  gap: 11px;
-  align-items: flex-start;
-  overflow-wrap: anywhere;
-}
-
-.task:nth-child(even) { background: #e7f0dc; }
-.task:nth-child(3n) { background: #f7e3e0; }
-
-.task input {
-  margin-top: 4px;
-  accent-color: #596b4c;
-  cursor: pointer;
-  width: 17px;
-  height: 17px;
-  flex-shrink: 0;
-}
-
-.task-content { flex: 1; }
-
-.task-title { font-weight: bold; font-size: 14px; }
-
-.task-description {
-  font-size: 13px;
-  margin-top: 5px;
-  line-height: 1.5;
-  color: #666;
-}
-
-.completed {
-  opacity: 0.55;
-}
-
-.completed .task-title {
-  text-decoration: line-through;
-}
-
-.task-date {
-  font-size: 10px;
-  color: #888;
-  margin-top: 7px;
-}
-
-.edit-panel {
-  border-top: 1px solid #eee;
-  padding-top: 15px;
-  margin-top: 15px;
-}
-
-.edit-panel input,
-.edit-panel textarea {
-  width: 100%;
-  padding: 11px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  margin-bottom: 9px;
-  font-family: inherit;
-}
-
-.edit-panel textarea {
-  resize: vertical;
-  min-height: 65px;
-}
-
-.edit-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.locked {
-  color: #c17c42;
-  font-size: 11px;
-}
-
-.empty {
-  text-align: center;
-  color: #aaa;
-  font-size: 13px;
-  padding: 20px 0;
-}
-
-.delete {
-  background: #f8e5e3;
-  color: #9c514a;
-}
-
-.modal {
-  position: fixed;
-  inset: 0;
-  background: #0007;
-  display: none;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal-content {
-  background: white;
-  padding: 25px;
-  border-radius: 15px;
-  width: min(350px, 90%);
-}
-
-.modal input {
-  width: 100%;
-  padding: 12px;
-  margin: 15px 0;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-}
-
-@media(max-width: 600px) {
-  body { padding: 20px; }
-  header { align-items: flex-start; gap: 15px; }
-  h1 { font-size: 25px; }
-}
+*{box-sizing:border-box}body{margin:0;padding:40px;background:#f7f5ef;color:#34342f;font-family:'Trebuchet MS',sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:35px;gap:16px}h1{font-size:32px;margin:0}.subtitle{color:#888;margin-top:7px}
+button{border:0;cursor:pointer;border-radius:9px;padding:10px 16px;font-weight:bold;transition:.2s}button:hover:not(:disabled){opacity:.82;transform:translateY(-1px)}button:disabled{opacity:.5;cursor:not-allowed}
+.primary{background:#444b3d;color:white}.secondary{background:#e9e7df;color:#444}
+.boards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:25px;align-items:start}
+.board{background:white;border-radius:15px;padding:20px;box-shadow:0 4px 15px #0000000a;border:1px solid #eceae3}
+.board-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:10px}.board h2{margin:0;font-size:21px}.board-status{font-size:11px;color:#999;margin-top:5px}
+.task{padding:13px;border-radius:10px;margin-bottom:10px;display:flex;gap:11px;align-items:flex-start;overflow-wrap:anywhere}
+.task input[type=checkbox]{margin-top:4px;accent-color:#596b4c;cursor:pointer;width:17px;height:17px;flex-shrink:0}
+.task-content{flex:1}.task-title{font-weight:bold;font-size:14px}.task-description{font-size:13px;margin-top:5px;line-height:1.5;color:#555}
+.completed{opacity:.55}.completed .task-title{text-decoration:line-through}.task-date{font-size:10px;color:#666;margin-top:7px}
+.edit-panel{border-top:1px solid #eee;padding-top:15px;margin-top:15px}.edit-panel input,.edit-panel textarea,.edit-panel select,.modal input{width:100%;padding:11px;border:1px solid #ddd;border-radius:8px;margin:8px 0;font-family:inherit;background:white}
+.edit-panel textarea{resize:vertical;min-height:65px}.edit-actions{display:flex;gap:8px;flex-wrap:wrap}.locked{color:#c17c42;font-size:11px;margin-bottom:12px}
+.empty{text-align:center;color:#aaa;font-size:13px;padding:20px 0}.color-label{font-size:12px;color:#777;margin-top:5px;display:block}
+.history{border-top:1px solid #eee;margin-top:18px;padding-top:12px}.history summary{cursor:pointer;color:#777;font-size:13px;font-weight:bold;user-select:none}
+.history-item{padding:10px;margin-top:9px;border-radius:8px;background:#f2f1ed;font-size:12px;overflow-wrap:anywhere}
+.history-title{font-weight:bold;color:#555}.history-description{color:#888;margin-top:4px;line-height:1.4}.history-date{color:#aaa;font-size:10px;margin-top:6px}.history-empty{color:#aaa;font-size:12px;margin-top:12px}
+.danger-zone{border-top:1px dashed #eee;margin-top:32px;padding-top:18px;display:flex;justify-content:flex-end}
+.delete{background:transparent;color:#b58b86;font-size:10px;padding:5px 8px;border:1px solid #eee4e2}
+.modal{position:fixed;inset:0;background:#0007;display:none;justify-content:center;align-items:center;z-index:10}.modal-content{background:white;padding:25px;border-radius:15px;width:min(350px,90%)}
+#app{display:none}
+.auth-wrap{max-width:380px;margin:12vh auto 0;background:white;padding:26px;border-radius:15px;box-shadow:0 4px 20px #0000000a;border:1px solid #eceae3}.auth-wrap h2{margin-top:0}.auth-wrap p{color:#777;font-size:13px;line-height:1.5}
+.auth-wrap input{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;margin:8px 0 12px;font-family:inherit}.auth-wrap button{width:100%}.notice{font-size:12px;color:#b0554a;margin-top:12px;min-height:18px}
+@media(max-width:600px){body{padding:20px}header{align-items:flex-start}h1{font-size:25px}}
 </style>
 </head>
-
 <body>
-
+<div class="auth-wrap" id="loginPanel">
+  <h2>📌 The Task Wall</h2>
+  <p>Enter the password to continue.</p>
+  <form id="loginForm" onsubmit="return false">
+    <input id="password" type="password" placeholder="Password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" autofocus>
+    <button class="primary" type="submit" id="unlockBtn">Unlock</button>
+  </form>
+  <div class="notice" id="loginNotice" role="alert"></div>
+</div>
+<div id="app">
 <header>
-  <div>
-    <h1>📌 The Task Wall</h1>
-    <div class="subtitle">Little things that need doing.</div>
-  </div>
-  <button class="primary" onclick="openModal()">
-    + New Board
-  </button>
+  <div><h1>📌 The Task Wall</h1><div class="subtitle">Little things that need doing.</div></div>
+  <button class="primary" id="newBoardBtn">+ New Board</button>
 </header>
-
 <div class="boards" id="boards"></div>
-
-<!-- New board modal -->
-<div class="modal" id="modal">
+</div>
+<div class="modal" id="modal" aria-hidden="true">
   <div class="modal-content">
-    <h2>Create a board</h2>
-    <p>Whose board are we making?</p>
-    <input id="personName" placeholder="Enter their name...">
-    <div class="edit-actions">
-      <button class="primary" onclick="createBoard()">Create Board</button>
-      <button class="secondary" onclick="closeModal()">Cancel</button>
-    </div>
+    <h2>Create a board</h2><p>Whose board are we making?</p>
+    <input id="personName" placeholder="Enter their name..." autocomplete="off">
+    <div class="edit-actions"><button class="primary" id="createBoardBtn">Create Board</button><button class="secondary" id="cancelModalBtn">Cancel</button></div>
   </div>
 </div>
-
 <script>
-let boards = JSON.parse(localStorage.getItem("taskWall")) || [];
-
-// Simulated current user.
-// In a real website, this would come from user authentication.
-const currentUser =
-  localStorage.getItem("taskWallUser") ||
-  ("User-" + Math.floor(Math.random() * 10000));
-
-localStorage.setItem("taskWallUser", currentUser);
-
-function save() {
-  localStorage.setItem("taskWall", JSON.stringify(boards));
+// ---- Password gate: self-contained so it works even if the board code below fails ----
+const PASSWORD = "Dingdong!!";
+const AUTH_KEY = "taskWallUnlocked";
+// localStorage with an in-memory fallback (some viewers/sandboxes block localStorage)
+const store = (()=>{const mem={};let ok=true;
+  try{localStorage.setItem("__t","1");localStorage.removeItem("__t");}catch(e){ok=false;}
+  return {get(k){if(ok){try{return localStorage.getItem(k);}catch(e){}}return k in mem?mem[k]:null;},
+          set(k,v){if(ok){try{localStorage.setItem(k,v);return;}catch(e){}}mem[k]=String(v);}};})();
+function attemptLogin(){
+  const input=document.getElementById("password"),notice=document.getElementById("loginNotice");
+  if(input.value.trim()===PASSWORD){
+    store.set(AUTH_KEY,"yes");input.value="";notice.textContent="";
+    if(window.startTaskWall)window.startTaskWall();
+    else notice.textContent="Password accepted, but the board failed to load.";
+  }else{
+    notice.textContent="Incorrect password.";input.select();
+  }
 }
+document.getElementById("unlockBtn").addEventListener("click",attemptLogin);
+document.getElementById("password").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();attemptLogin();}});
+window.addEventListener("error",e=>{const n=document.getElementById("loginNotice");if(n&&!n.textContent)n.textContent="Error: "+e.message;});
+</script>
+<script>
+const TASK_EXPIRATION = 1000; // TEST: 1 second. Production: 24 * 60 * 60 * 1000.
+const TASK_COLORS = {yellow:"#fff1ad",pink:"#f7dce3",blue:"#dceaf7",green:"#dcebd5",purple:"#e9def5",orange:"#f8e1c9",gray:"#e9e9e6"};
+const STORAGE_KEY = "taskWall";
+const USER_KEY = "taskWallUser";
+let boards; try{boards=JSON.parse(store.get(STORAGE_KEY)||"[]");if(!Array.isArray(boards))boards=[];}catch(e){boards=[];}
+let currentUser = store.get(USER_KEY);
+if (!currentUser) { currentUser = "User-" + Math.floor(Math.random()*10000); store.set(USER_KEY,currentUser); }
+boards.forEach(b => { if(!Array.isArray(b.history)) b.history=[]; if(!Array.isArray(b.tasks)) b.tasks=[]; });
 
-function cleanup() {
-  const now = Date.now();
-
-  boards.forEach(board => {
-    board.tasks = board.tasks.filter(task =>
-      !task.completedAt ||
-      now - task.completedAt < 24 * 60 * 60 * 1000
-    );
-
-    // Release abandoned editing locks after 5 minutes.
-    if (board.lock &&
-        now - board.lock.time > 5 * 60 * 1000) {
-      board.lock = null;
+const $ = id => document.getElementById(id);
+function save(){store.set(STORAGE_KEY,JSON.stringify(boards));}
+function escapeHTML(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function formatDate(t){return new Date(t).toLocaleString([], {month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",second:"2-digit"});}
+function cleanup(){
+  const now=Date.now(); let changed=false;
+  boards.forEach(board=>{
+    const expired=board.tasks.filter(t=>t.completedAt && now-t.completedAt>=TASK_EXPIRATION);
+    if(expired.length){
+      board.history ||= [];
+      expired.forEach(t=>board.history.push({...t,archivedAt:now}));
+      const ids=new Set(expired.map(t=>t.id));
+      board.tasks=board.tasks.filter(t=>!ids.has(t.id)); changed=true;
     }
+    if(board.lock && now-board.lock.time>5*60*1000){board.lock=null;changed=true;}
   });
-
-  save();
+  if(changed){save();render();}
+  return changed;
 }
-
-function openModal() {
-  document.getElementById("modal").style.display = "flex";
+function openModal(){$("modal").style.display="flex";$("modal").setAttribute("aria-hidden","false");$("personName").focus();}
+function closeModal(){$("modal").style.display="none";$("modal").setAttribute("aria-hidden","true");}
+function createBoard(){
+  const name=$("personName").value.trim(); if(!name){alert("Please enter a name!");return;}
+  boards.push({id:Date.now(),name,tasks:[],history:[],lock:null}); save(); $("personName").value=""; closeModal(); render();
 }
-
-function closeModal() {
-  document.getElementById("modal").style.display = "none";
+function editBoard(id){
+  const b=boards.find(x=>x.id===id); if(!b)return;
+  if(b.lock && b.lock.user!==currentUser){alert("Someone else is currently editing this board!");return;}
+  b.lock={user:currentUser,time:Date.now()};save();render();
 }
-
-function createBoard() {
-  const name = document.getElementById("personName").value.trim();
-
-  if (!name) {
-    alert("Please enter a name!");
-    return;
-  }
-
-  boards.push({
-    id: Date.now(),
-    name,
-    tasks: [],
-    lock: null
-  });
-
-  save();
-  document.getElementById("personName").value = "";
-  closeModal();
-  render();
+function stopEditing(id){const b=boards.find(x=>x.id===id);if(b?.lock?.user===currentUser)b.lock=null;save();render();}
+function addTask(id){
+  const b=boards.find(x=>x.id===id);if(!b||b.lock?.user!==currentUser)return;
+  const title=$("title-"+id).value.trim(),description=$("desc-"+id).value.trim(),color=$("color-"+id).value;
+  if(!title){alert("Give the task a title!");$("title-"+id).focus();return;}
+  b.tasks.push({id:Date.now()+Math.random(),title,description,color,completedAt:null});
+  b.lock.time=Date.now();save();render();
+  $("title-"+id)?.focus();
 }
-
-function editBoard(id) {
-  const board = boards.find(b => b.id === id);
-
-  if (board.lock && board.lock.user !== currentUser) {
-    alert("Someone else is currently editing this board!");
-    return;
-  }
-
-  board.lock = {
-    user: currentUser,
-    time: Date.now()
-  };
-
-  save();
-  render();
+function toggleTask(boardId,taskId){
+  const b=boards.find(x=>x.id===boardId),t=b?.tasks.find(x=>x.id===taskId);if(!t)return;
+  t.completedAt=t.completedAt?null:Date.now();save();render();
 }
-
-function stopEditing(id) {
-  const board = boards.find(b => b.id === id);
-
-  if (board.lock?.user === currentUser) {
-    board.lock = null;
-    save();
-  }
-
-  render();
+function deleteBoard(id){
+  const b=boards.find(x=>x.id===id);if(!b)return;
+  if(!confirm(`Permanently delete ${b.name}'s board and all its tasks and history?`))return;
+  if(prompt(`Type DELETE to confirm removal of ${b.name}'s board.`)!=="DELETE"){alert("Deletion cancelled.");return;}
+  boards=boards.filter(x=>x.id!==id);save();render();
 }
-
-function addTask(id) {
-  const board = boards.find(b => b.id === id);
-
-  if (board.lock?.user !== currentUser) return;
-
-  const titleInput = document.getElementById("title-" + id);
-  const descInput = document.getElementById("desc-" + id);
-
-  const title = titleInput.value.trim();
-  const description = descInput.value.trim();
-
-  if (!title) {
-    alert("Give the task a title!");
-    return;
-  }
-
-  board.tasks.push({
-    id: Date.now(),
-    title,
-    description,
-    completedAt: null
-  });
-
-  board.lock.time = Date.now();
-  save();
-  render();
-}
-
-function toggleTask(boardId, taskId) {
-  const board = boards.find(b => b.id === boardId);
-  const task = board.tasks.find(t => t.id === taskId);
-
-  task.completedAt = task.completedAt ? null : Date.now();
-
-  save();
-  render();
-}
-
-function deleteBoard(id) {
-  if (!confirm("Delete this entire board?")) return;
-
-  boards = boards.filter(b => b.id !== id);
-  save();
-  render();
-}
-
-function escapeHTML(str) {
-  return String(str).replace(/[&<>"']/g, char => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;'
-  })[char]);
-}
-
-function render() {
-  const container = document.getElementById("boards");
-  container.innerHTML = "";
-
-  boards.forEach(board => {
-    const isEditing = board.lock?.user === currentUser;
-    const isLocked = board.lock && !isEditing;
-
-    const card = document.createElement("div");
-    card.className = "board";
-
-    let tasksHTML = board.tasks.map(task => `
-      <div class="task ${task.completedAt ? 'completed' : ''}">
-        <input
-          type="checkbox"
-          ${task.completedAt ? 'checked' : ''}
-          onchange="toggleTask(${board.id}, ${task.id})"
-        >
-        <div class="task-content">
-          <div class="task-title">${escapeHTML(task.title)}</div>
-          ${task.description ?
-            `<div class="task-description">${escapeHTML(task.description)}</div>`
-            : ""}
-          ${task.completedAt ?
-            `<div class="task-date">Completed — disappears in ${Math.max(0, Math.ceil((86400000 - (Date.now() - task.completedAt)) / 3600000))}h</div>`
-            : ""}
-        </div>
-      </div>
-    `).join("");
-
-    if (!tasksHTML) {
-      tasksHTML = `<div class="empty">Nothing on the list. Lucky you!</div>`;
-    }
-
-    card.innerHTML = `
-      <div class="board-header">
-        <div>
-          <h2>${escapeHTML(board.name)}'s Board</h2>
-          <div class="board-status">
-            ${board.tasks.length} task(s)
-          </div>
-        </div>
-        <button class="secondary"
-          onclick="editBoard(${board.id})"
-          ${isEditing || isLocked ? 'disabled' : ''}>
-          ${isLocked ? 'Locked' : 'Edit'}
-        </button>
-      </div>
-
-      ${isLocked ?
-        `<div class="locked">🔒 Currently being edited by another user.</div>`
-        : ""}
-
-      ${tasksHTML}
-
-      ${isEditing ? `
-        <div class="edit-panel">
-          <strong>Add a task</strong>
-          <input id="title-${board.id}" placeholder="Task title...">
-          <textarea id="desc-${board.id}" placeholder="Describe what needs doing..."></textarea>
-          <div class="edit-actions">
-            <button class="primary" onclick="addTask(${board.id})">
-              + Add Task
-            </button>
-            <button class="secondary" onclick="stopEditing(${board.id})">
-              Done
-            </button>
-          </div>
-          <button class="delete"
-            style="margin-top:12px"
-            onclick="deleteBoard(${board.id})">
-            Delete Board
-          </button>
-        </div>
-      ` : ""}
-    `;
-
+function render(){
+  const container=$("boards");
+  // Preserve expanded history sections when a legitimate state change requires rendering.
+  const openHistory=new Set([...container.querySelectorAll("details.history[ open]")].map(d=>d.dataset.board));
+  container.innerHTML="";
+  boards.forEach(board=>{
+    const editing=board.lock?.user===currentUser,locked=board.lock&&!editing;
+    const card=document.createElement("section");card.className="board";
+    const tasks=board.tasks.map(t=>`
+      <div class="task ${t.completedAt?"completed":""}" style="background:${TASK_COLORS[t.color]||TASK_COLORS.yellow}">
+        <input type="checkbox" data-action="toggle" data-board="${board.id}" data-task="${t.id}" ${t.completedAt?"checked":""} aria-label="Complete ${escapeHTML(t.title)}">
+        <div class="task-content"><div class="task-title">${escapeHTML(t.title)}</div>
+        ${t.description?`<div class="task-description">${escapeHTML(t.description)}</div>`:""}
+        ${t.completedAt?`<div class="task-date">Completed — awaiting archive</div>`:""}</div>
+      </div>`).join("") || `<div class="empty">Nothing on the list. Lucky you!</div>`;
+    const history=[...(board.history||[])].sort((a,b)=>a.archivedAt-b.archivedAt);
+    const historyHTML=history.length?history.map(t=>`<div class="history-item"><div class="history-title">✓ ${escapeHTML(t.title)}</div>
+      ${t.description?`<div class="history-description">${escapeHTML(t.description)}</div>`:""}
+      <div class="history-date">Completed: ${formatDate(t.completedAt)}<br>Archived: ${formatDate(t.archivedAt)}</div></div>`).join(""):`<div class="history-empty">No completed tasks yet.</div>`;
+    card.innerHTML=`
+      <div class="board-header"><div><h2>${escapeHTML(board.name)}'s Board</h2><div class="board-status">${board.tasks.length} active task(s)</div></div>
+      <button class="secondary" data-action="edit" data-board="${board.id}" ${editing||locked?"disabled":""}>${locked?"Locked":editing?"Editing":"Edit"}</button></div>
+      ${locked?'<div class="locked">🔒 Currently being edited by another user.</div>':""}
+      ${tasks}
+      <details class="history" data-board="${board.id}" ${openHistory.has(String(board.id))?"open":""}><summary>📜 History (${history.length})</summary>${historyHTML}</details>
+      ${editing?`<div class="edit-panel"><strong>Add a task</strong>
+        <input id="title-${board.id}" placeholder="Task title..." autocomplete="off">
+        <textarea id="desc-${board.id}" placeholder="Describe what needs doing..."></textarea>
+        <label class="color-label" for="color-${board.id}">Task color</label>
+        <select id="color-${board.id}"><option value="yellow">🟡 Yellow</option><option value="pink">🩷 Pink</option><option value="blue">🔵 Blue</option><option value="green">🟢 Green</option><option value="purple">🟣 Purple</option><option value="orange">🟠 Orange</option><option value="gray">⚪ Gray</option></select>
+        <div class="edit-actions"><button class="primary" data-action="add" data-board="${board.id}">+ Add Task</button><button class="secondary" data-action="done" data-board="${board.id}">Done</button></div>
+        <div class="danger-zone"><button class="delete" data-action="delete" data-board="${board.id}">Delete board</button></div>
+      </div>`:""}`;
     container.appendChild(card);
   });
 }
-
-cleanup();
-render();
-
-// Periodically refresh to remove expired tasks.
-setInterval(() => {
-  cleanup();
-  render();
-}, 60000);
-
+$("newBoardBtn").addEventListener("click",openModal);
+$("createBoardBtn").addEventListener("click",createBoard);
+$("cancelModalBtn").addEventListener("click",closeModal);
+$("personName").addEventListener("keydown",e=>{if(e.key==="Enter")createBoard();});
+$("boards").addEventListener("click",e=>{
+  const btn=e.target.closest("button[data-action]");if(!btn)return;
+  const id=Number(btn.dataset.board),action=btn.dataset.action;
+  if(action==="edit")editBoard(id);if(action==="done")stopEditing(id);if(action==="add")addTask(id);if(action==="delete")deleteBoard(id);
+});
+$("boards").addEventListener("keydown",e=>{
+  // Enter in the title box adds the task; Ctrl/Cmd+Enter does it from the description box (plain Enter there stays a new line).
+  const m=/^(title|desc)-(.+)$/.exec(e.target.id||"");
+  if(!m||e.key!=="Enter"||e.isComposing)return;
+  if(m[1]==="desc"&&!(e.ctrlKey||e.metaKey))return;
+  e.preventDefault();addTask(Number(m[2]));
+});
+$("boards").addEventListener("change",e=>{
+  if(e.target.matches('input[data-action="toggle"]'))toggleTask(Number(e.target.dataset.board),Number(e.target.dataset.task));
+});
+let started=false;
+function startApp(){
+  $("loginPanel").style.display="none";$("app").style.display="block";
+  if(started)return;started=true;
+  cleanup();render();
+  // Poll for expiration, but only rebuild the page if a task actually expires or a lock expires.
+  // Typing, selecting colors, and opening History do not call render().
+  setInterval(cleanup,250);
+}
+window.startTaskWall=startApp;
+if(store.get(AUTH_KEY)==="yes")startApp();
 </script>
 </body>
 </html>
