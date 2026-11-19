@@ -1,0 +1,470 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Task Wall</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 40px;
+  background: #f7f5ef;
+  color: #34342f;
+  font-family: 'Trebuchet MS', sans-serif;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 35px;
+}
+
+h1 { font-size: 32px; margin: 0; }
+.subtitle { color: #888; margin-top: 7px; }
+
+button {
+  border: none;
+  cursor: pointer;
+  border-radius: 9px;
+  padding: 10px 16px;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+button:hover { opacity: 0.8; transform: translateY(-1px); }
+
+.primary {
+  background: #444b3d;
+  color: white;
+}
+
+.secondary {
+  background: #e9e7df;
+  color: #444;
+}
+
+.boards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+  align-items: start;
+}
+
+.board {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 15px #0000000a;
+  border: 1px solid #eceae3;
+}
+
+.board-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.board h2 { margin: 0; font-size: 21px; }
+
+.board-status {
+  font-size: 11px;
+  color: #999;
+  margin-top: 5px;
+}
+
+.task {
+  padding: 13px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  background: #fff4bd;
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  overflow-wrap: anywhere;
+}
+
+.task:nth-child(even) { background: #e7f0dc; }
+.task:nth-child(3n) { background: #f7e3e0; }
+
+.task input {
+  margin-top: 4px;
+  accent-color: #596b4c;
+  cursor: pointer;
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+.task-content { flex: 1; }
+
+.task-title { font-weight: bold; font-size: 14px; }
+
+.task-description {
+  font-size: 13px;
+  margin-top: 5px;
+  line-height: 1.5;
+  color: #666;
+}
+
+.completed {
+  opacity: 0.55;
+}
+
+.completed .task-title {
+  text-decoration: line-through;
+}
+
+.task-date {
+  font-size: 10px;
+  color: #888;
+  margin-top: 7px;
+}
+
+.edit-panel {
+  border-top: 1px solid #eee;
+  padding-top: 15px;
+  margin-top: 15px;
+}
+
+.edit-panel input,
+.edit-panel textarea {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 9px;
+  font-family: inherit;
+}
+
+.edit-panel textarea {
+  resize: vertical;
+  min-height: 65px;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.locked {
+  color: #c17c42;
+  font-size: 11px;
+}
+
+.empty {
+  text-align: center;
+  color: #aaa;
+  font-size: 13px;
+  padding: 20px 0;
+}
+
+.delete {
+  background: #f8e5e3;
+  color: #9c514a;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: #0007;
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  width: min(350px, 90%);
+}
+
+.modal input {
+  width: 100%;
+  padding: 12px;
+  margin: 15px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+@media(max-width: 600px) {
+  body { padding: 20px; }
+  header { align-items: flex-start; gap: 15px; }
+  h1 { font-size: 25px; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div>
+    <h1>📌 The Task Wall</h1>
+    <div class="subtitle">Little things that need doing.</div>
+  </div>
+  <button class="primary" onclick="openModal()">
+    + New Board
+  </button>
+</header>
+
+<div class="boards" id="boards"></div>
+
+<!-- New board modal -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <h2>Create a board</h2>
+    <p>Whose board are we making?</p>
+    <input id="personName" placeholder="Enter their name...">
+    <div class="edit-actions">
+      <button class="primary" onclick="createBoard()">Create Board</button>
+      <button class="secondary" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let boards = JSON.parse(localStorage.getItem("taskWall")) || [];
+
+// Simulated current user.
+// In a real website, this would come from user authentication.
+const currentUser =
+  localStorage.getItem("taskWallUser") ||
+  ("User-" + Math.floor(Math.random() * 10000));
+
+localStorage.setItem("taskWallUser", currentUser);
+
+function save() {
+  localStorage.setItem("taskWall", JSON.stringify(boards));
+}
+
+function cleanup() {
+  const now = Date.now();
+
+  boards.forEach(board => {
+    board.tasks = board.tasks.filter(task =>
+      !task.completedAt ||
+      now - task.completedAt < 24 * 60 * 60 * 1000
+    );
+
+    // Release abandoned editing locks after 5 minutes.
+    if (board.lock &&
+        now - board.lock.time > 5 * 60 * 1000) {
+      board.lock = null;
+    }
+  });
+
+  save();
+}
+
+function openModal() {
+  document.getElementById("modal").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("modal").style.display = "none";
+}
+
+function createBoard() {
+  const name = document.getElementById("personName").value.trim();
+
+  if (!name) {
+    alert("Please enter a name!");
+    return;
+  }
+
+  boards.push({
+    id: Date.now(),
+    name,
+    tasks: [],
+    lock: null
+  });
+
+  save();
+  document.getElementById("personName").value = "";
+  closeModal();
+  render();
+}
+
+function editBoard(id) {
+  const board = boards.find(b => b.id === id);
+
+  if (board.lock && board.lock.user !== currentUser) {
+    alert("Someone else is currently editing this board!");
+    return;
+  }
+
+  board.lock = {
+    user: currentUser,
+    time: Date.now()
+  };
+
+  save();
+  render();
+}
+
+function stopEditing(id) {
+  const board = boards.find(b => b.id === id);
+
+  if (board.lock?.user === currentUser) {
+    board.lock = null;
+    save();
+  }
+
+  render();
+}
+
+function addTask(id) {
+  const board = boards.find(b => b.id === id);
+
+  if (board.lock?.user !== currentUser) return;
+
+  const titleInput = document.getElementById("title-" + id);
+  const descInput = document.getElementById("desc-" + id);
+
+  const title = titleInput.value.trim();
+  const description = descInput.value.trim();
+
+  if (!title) {
+    alert("Give the task a title!");
+    return;
+  }
+
+  board.tasks.push({
+    id: Date.now(),
+    title,
+    description,
+    completedAt: null
+  });
+
+  board.lock.time = Date.now();
+  save();
+  render();
+}
+
+function toggleTask(boardId, taskId) {
+  const board = boards.find(b => b.id === boardId);
+  const task = board.tasks.find(t => t.id === taskId);
+
+  task.completedAt = task.completedAt ? null : Date.now();
+
+  save();
+  render();
+}
+
+function deleteBoard(id) {
+  if (!confirm("Delete this entire board?")) return;
+
+  boards = boards.filter(b => b.id !== id);
+  save();
+  render();
+}
+
+function escapeHTML(str) {
+  return String(str).replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[char]);
+}
+
+function render() {
+  const container = document.getElementById("boards");
+  container.innerHTML = "";
+
+  boards.forEach(board => {
+    const isEditing = board.lock?.user === currentUser;
+    const isLocked = board.lock && !isEditing;
+
+    const card = document.createElement("div");
+    card.className = "board";
+
+    let tasksHTML = board.tasks.map(task => `
+      <div class="task ${task.completedAt ? 'completed' : ''}">
+        <input
+          type="checkbox"
+          ${task.completedAt ? 'checked' : ''}
+          onchange="toggleTask(${board.id}, ${task.id})"
+        >
+        <div class="task-content">
+          <div class="task-title">${escapeHTML(task.title)}</div>
+          ${task.description ?
+            `<div class="task-description">${escapeHTML(task.description)}</div>`
+            : ""}
+          ${task.completedAt ?
+            `<div class="task-date">Completed — disappears in ${Math.max(0, Math.ceil((86400000 - (Date.now() - task.completedAt)) / 3600000))}h</div>`
+            : ""}
+        </div>
+      </div>
+    `).join("");
+
+    if (!tasksHTML) {
+      tasksHTML = `<div class="empty">Nothing on the list. Lucky you!</div>`;
+    }
+
+    card.innerHTML = `
+      <div class="board-header">
+        <div>
+          <h2>${escapeHTML(board.name)}'s Board</h2>
+          <div class="board-status">
+            ${board.tasks.length} task(s)
+          </div>
+        </div>
+        <button class="secondary"
+          onclick="editBoard(${board.id})"
+          ${isEditing || isLocked ? 'disabled' : ''}>
+          ${isLocked ? 'Locked' : 'Edit'}
+        </button>
+      </div>
+
+      ${isLocked ?
+        `<div class="locked">🔒 Currently being edited by another user.</div>`
+        : ""}
+
+      ${tasksHTML}
+
+      ${isEditing ? `
+        <div class="edit-panel">
+          <strong>Add a task</strong>
+          <input id="title-${board.id}" placeholder="Task title...">
+          <textarea id="desc-${board.id}" placeholder="Describe what needs doing..."></textarea>
+          <div class="edit-actions">
+            <button class="primary" onclick="addTask(${board.id})">
+              + Add Task
+            </button>
+            <button class="secondary" onclick="stopEditing(${board.id})">
+              Done
+            </button>
+          </div>
+          <button class="delete"
+            style="margin-top:12px"
+            onclick="deleteBoard(${board.id})">
+            Delete Board
+          </button>
+        </div>
+      ` : ""}
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+cleanup();
+render();
+
+// Periodically refresh to remove expired tasks.
+setInterval(() => {
+  cleanup();
+  render();
+}, 60000);
+
+</script>
+</body>
+</html>
